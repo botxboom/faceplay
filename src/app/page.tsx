@@ -1,10 +1,13 @@
-import { SignedIn, SignedOut, SignIn } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import Lobby from "./_components/Lobby";
 
 export default function HomePage() {
   return (
     <main>
       <SignedOut>Please Sign in</SignedOut>
-      <SignedIn>Hello World</SignedIn>
+      <SignedIn>
+        <Lobby />
+      </SignedIn>
     </main>
   );
 }
