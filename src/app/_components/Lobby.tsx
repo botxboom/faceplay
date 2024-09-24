@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Peer from "peerjs";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 
 export default function Lobby() {
   const myVideoRef = useRef<HTMLVideoElement>(null);
@@ -50,7 +52,7 @@ export default function Lobby() {
     }
   }, [myUniqueId]);
 
-  const handleCall = () => {
+  const joinCall = () => {
     navigator.mediaDevices
       .getUserMedia({
         video: true,
@@ -60,7 +62,6 @@ export default function Lobby() {
         const call = peerInstance?.call(idToCall, stream);
         if (call) {
           call.on("stream", (userVideoStream) => {
-            console.log(userVideoStream);
             if (callingVideoRef.current) {
               callingVideoRef.current.srcObject = userVideoStream;
             }
@@ -71,16 +72,18 @@ export default function Lobby() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-12">
-      <p>your id : {myUniqueId}</p>
-      <video muted className="w-72" playsInline ref={myVideoRef} autoPlay />
-      <input
-        className="border text-black"
-        placeholder="Id to call"
-        value={idToCall}
-        onChange={(e) => setIdToCall(e.target.value)}
-      />
-      <button onClick={handleCall}>call</button>
+    <div className="flex flex-col items-center justify-center gap-2 p-12">
+      <p className="mb-2">your id : {myUniqueId}</p>
+      <div className="mb-2 flex flex-row gap-4">
+        <Input
+          placeholder="Id to call"
+          value={idToCall}
+          onChange={(e) => setIdToCall(e.target.value)}
+        />
+        <Button onClick={joinCall}>call</Button>
+      </div>
+      <video muted className="w-100" playsInline ref={myVideoRef} autoPlay />
+
       <video className="w-72" playsInline ref={callingVideoRef} autoPlay />
     </div>
   );
