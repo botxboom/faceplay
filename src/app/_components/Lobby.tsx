@@ -1,20 +1,90 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import useMedia from "../_hooks/useMedia";
+import Peer from "peerjs";
 
 export default function Lobby() {
-  const { stream } = useMedia();
+  const myVideoRef = useRef<HTMLVideoElement>(null);
+  const callingVideoRef = useRef<HTMLVideoElement>(null);
+  const [idToCall, setIdToCall] = useState("");
+  const [peerInstance, setPeerInstance] = useState<Peer | null>(null);
+  const [myUniqueId, setMyUniqueId] = useState<string>("");
+
+  useEffect(() => {
+    setMyUniqueId(Math.random().toString(36).substring(2));
+  }, []);
+
+  useEffect(() => {
+    if (myUniqueId) {
+      let peer: Peer;
+      if (typeof window !== "undefined") {
+        peer = new Peer(myUniqueId, {
+          host: "localhost",
+          port: 9000,
+          path: "/myapp",
+        });
+
+        setPeerInstance(peer);
+
+        navigator.mediaDevices
+          .getUserMedia({
+            video: true,
+            audio: true,
+          })
+          .then((stream) => {
+            if (myVideoRef.current) {
+              myVideoRef.current.srcObject = stream;
+            }
+
+            peer.on("call", (call) => {
+              call.answer(stream);
+              call.on("stream", (userVideoStream) => {
+                if (callingVideoRef.current) {
+                  callingVideoRef.current.srcObject = userVideoStream;
+                }
+              });
+            });
+          });
+      }
+      return () => {
+        if (peer) {
+          peer.destroy();
+        }
+      };
+    }
+  }, [myUniqueId]);
+
+  const handleCall = () => {
+    navigator.mediaDevices
+      .getUserMedia({
+        video: true,
+        audio: true,
+      })
+      .then((stream) => {
+        const call = peerInstance?.call(idToCall, stream);
+        if (call) {
+          call.on("stream", (userVideoStream) => {
+            if (callingVideoRef.current) {
+              callingVideoRef.current.srcObject = userVideoStream;
+            }
+          });
+        }
+      });
+  };
 
   return (
-    stream && (
-      <video
-        autoPlay
-        ref={(node) => {
-          if (node) node.srcObject = stream;
-        }}
-        width={500}
-        height={500}
-      ></video>
-    )
+    <div className="flex flex-col items-center justify-center p-12">
+      <p>your id : {myUniqueId}</p>
+      <video className="w-72" playsInline ref={myVideoRef} autoPlay />
+      <input
+        className="border text-black"
+        placeholder="Id to call"
+        value={idToCall}
+        onChange={(e) => setIdToCall(e.target.value)}
+      />
+      <button onClick={handleCall}>call</button>
+      <video className="w-72" playsInline ref={callingVideoRef} autoPlay />
+    </div>
   );
 }
