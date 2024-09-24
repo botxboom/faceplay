@@ -33,7 +33,6 @@ export default function Lobby() {
             }
 
             peer.on("call", (call) => {
-              console.log(call);
               call.answer(stream);
               call.on("stream", (userVideoStream) => {
                 if (callingVideoRef.current) {
@@ -74,7 +73,7 @@ export default function Lobby() {
   return (
     <div className="flex flex-col items-center justify-center p-12">
       <p>your id : {myUniqueId}</p>
-      <video className="w-72" playsInline ref={myVideoRef} autoPlay />
+      <video muted className="w-72" playsInline ref={myVideoRef} autoPlay />
       <input
         className="border text-black"
         placeholder="Id to call"
