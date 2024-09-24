@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import useMedia from "../_hooks/useMedia";
 import Peer from "peerjs";
 
 export default function Lobby() {
@@ -19,11 +18,7 @@ export default function Lobby() {
     if (myUniqueId) {
       let peer: Peer;
       if (typeof window !== "undefined") {
-        peer = new Peer(myUniqueId, {
-          host: "localhost",
-          port: 9000,
-          path: "/myapp",
-        });
+        peer = new Peer(myUniqueId);
 
         setPeerInstance(peer);
 
@@ -38,6 +33,7 @@ export default function Lobby() {
             }
 
             peer.on("call", (call) => {
+              console.log(call);
               call.answer(stream);
               call.on("stream", (userVideoStream) => {
                 if (callingVideoRef.current) {
@@ -65,12 +61,14 @@ export default function Lobby() {
         const call = peerInstance?.call(idToCall, stream);
         if (call) {
           call.on("stream", (userVideoStream) => {
+            console.log(userVideoStream);
             if (callingVideoRef.current) {
               callingVideoRef.current.srcObject = userVideoStream;
             }
           });
         }
-      });
+      })
+      .catch((e) => console.log(e));
   };
 
   return (
